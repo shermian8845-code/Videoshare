@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VideoShare - TikTok-Inspired Video Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/your-kit-id.js" crossorigin="anonymous"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'primary': '#000000',
+                        'secondary': '#1C1C1E',
+                        'accent': '#FF006E',
+                        'success': '#00D4AA',
+                        'text-primary': '#FFFFFF',
+                        'text-secondary': '#8E8E93',
+                        'bg-primary': '#0A0A0A',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .video-card:hover {
+            transform: translateY(-2px);
+            transition: transform 0.2s ease-in-out;
+        }
+        .floating-nav {
+            backdrop-filter: blur(10px);
+            background: rgba(28, 28, 30, 0.8);
+        }
+        .star-rating .star {
+            color: #8E8E93;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .star-rating .star.filled {
+            color: #FFD700;
+        }
+        .star-rating .star:hover {
+            color: #FFD700;
+        }
+    </style>
+</head>
+<body class="bg-bg-primary text-text-primary min-h-screen">
+
+    <!-- @COMPONENT: AppContainer -->
+    <div id="app-container" class="relative">
+        
+        <!-- @COMPONENT: AuthModal -->
+        <div id="auth-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-secondary rounded-2xl p-8 w-full max-w-md mx-4">
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-bold text-text-primary mb-2">Welcome to VideoShare</h2>
+                    <p class="text-text-secondary">Join millions sharing amazing videos</p>
+                </div>
+                
+                <!-- Login Form -->
+                <div id="login-form" class="space-y-4">
+                    <div>
+                        <input type="email" placeholder="Email" data-mock="true" 
+                               class="w-full bg-primary border border-gray-600 rounded-lg px-4 py-3 text-text-primary placeholder-text-secondary focus:border-accent focus:outline-none">
+                    </div>
+                    <div>
+                        <input type="password" placeholder="Password" data-mock="true" 
+                               class="w-full bg-primary border border-gray-600 rounded-lg px-4 py-3 text-text-primary placeholder-text-secondary focus:border-accent focus:outline-none">
+                    </div>
+                    <button class="w-full bg-accent text-white py-3 rounded-lg font-semibold hover:bg-pink-600 transition-colors"
+                            data-event="click:handleLogin">
+                        Sign In
+                    </button>
+                    
+                    <div class="text-center">
+                        <span class="text-text-secondary">Don't have an account? </span>
+                        <button class="text-accent hover:underline" onclick="showSignup()">Sign up</button>
+                    </div>
+                </div>
+
+                <!-- Signup Form -->
+                <div id="signup-form" class="space-y-4 hidden">
+                    <div>
+                        <input type="text" placeholder="Full Name" data-mock="true" 
+                               class="w-full bg-primary border border-gray-600 rounded-lg px-4 py-3 text-text-primary placeholder-text-secondary focus:border-accent focus:outline-none">
+                    </div>
+                    <div>
+                        <input type="email" placeholder="Email" data-mock="true" 
+                               class="w-full bg-primary border border-gray-600 rounded-lg px-4 py-3 text-text-primary placeholder-text-secondary focus:border-accent focus:outline-none">
+                    </div>
+                    <div>
+                        <input type="password" placeholder="Password" data-mock="true" 
+                               class="w-full bg-primary border border-gray-600 rounded-lg px-4 py-3 text-text-primary placeholder-text-secondary focus:border-accent focus:outline-none">
+                    </div>
+                    <div>
+                        <select class="w-full bg-primary border border-gray-600 rounded-lg px-4 py-3 text-text-primary focus:border-accent focus:outline-none">
+                            <option value="consumer">Consumer (Watch Videos)</option>
+                            <option value="creator">Creator (Upload Videos)</option>
+                        </select>
+                    </div>
+                    <button class="w-full bg-accent text-white py-3 rounded-lg font-semibold hover:bg-pink-600 transition-colors"
+                            data-event="click:handleSignup">
+                        Create Account
+                    </button>
+                    
+                    <div class="text-center">
+                        <span class="text-text-secondary">Already have an account? </span>
+                        <button class="text-accent hover:underline" onclick="showLogin()">Sign in</button>
+                    </div>
+                </div>
+
+                <button class="absolute top-4 right-4 text-text-secondary hover:text-text-primary" 
+                        onclick="closeAuthModal()">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: AuthModal -->
+
+        <!-- @COMPONENT: TopNavigation -->
+        <nav class="floating-nav fixed top-0 left-0 right-0 z-40 px-4 py-3">
+            <div class="flex items-center justify-between max-w-6xl mx-auto">
+                <div class="flex items-center space-x-4">
+                    <button class="text-text-primary hover:text-accent transition-colors md:hidden" onclick="toggleMobileMenu()">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    <h1 class="text-2xl font-bold text-accent">VideoShare</h1>
+                </div>
+                
+                <!-- Search Bar -->
+                <div class="hidden md:flex flex-1 max-w-lg mx-8">
+                    <div class="relative w-full">
+                        <input type="text" placeholder="Search videos, creators, genres..." data-mock="true"
+                               class="w-full bg-primary border border-gray-600 rounded-full px-4 py-2 pl-10 text-text-primary placeholder-text-secondary focus:border-accent focus:outline-none">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary"></i>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    <button class="hidden md:block bg-accent text-white px-4 py-2 rounded-full font-semibold hover:bg-pink-600 transition-colors"
+                            onclick="showUploadModal()">
+                        <i class="fas fa-plus mr-2"></i>Upload
+                    </button>
+                    <button class="text-text-primary hover:text-accent transition-colors" onclick="openAuthModal()">
+                        <i class="fas fa-user-circle text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </nav>
+        <!-- @END_COMPONENT: TopNavigation -->
+
+        <!-- @COMPONENT: MobileMenu -->
+        <div id="mobile-menu" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden md:hidden">
+            <div class="bg-secondary w-64 h-full p-6">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-xl font-bold text-text-primary">Menu</h2>
+                    <button onclick="toggleMobileMenu()" class="text-text-secondary hover:text-text-primary">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <div class="space-y-4">
+                    <a href="#" class="flex items-center space-x-3 text-text-primary hover:text-accent transition-colors">
+                        <i class="fas fa-home"></i>
+                        <span>Home</span>
+                    </a>
+                    <a href="#" class="flex items-center space-x-3 text-text-primary hover:text-accent transition-colors">
+                        <i class="fas fa-search"></i>
+                        <span>Search</span>
+                    </a>
+                    <a href="#" class="flex items-center space-x-3 text-text-primary hover:text-accent transition-colors">
+                        <i class="fas fa-user"></i>
+                        <span>Profile</span>
+                    </a>
+                    <a href="#" class="flex items-center space-x-3 text-text-primary hover:text-accent transition-colors">
+                        <i class="fas fa-upload"></i>
+                        <span>Upload Video</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: MobileMenu -->
+
+        <!-- @COMPONENT: MainContent -->
+        <main class="pt-20 pb-20 md:pb-8">
+            
+            <!-- @COMPONENT: HeroSection -->
+            <section class="px-4 py-8 text-center">
+                <h2 class="text-3xl md:text-5xl font-bold mb-4">
+                    Discover Amazing <span class="text-accent">Videos</span>
+                </h2>
+                <p class="text-text-secondary text-lg mb-8 max-w-2xl mx-auto">
+                    Watch, share, and create incredible content with our community of creators
+                </p>
+                
+                <!-- Mobile Search -->
+                <div class="md:hidden mb-8">
+                    <div class="relative">
+                        <input type="text" placeholder="Search videos..." data-mock="true"
+                               class="w-full bg-primary border border-gray-600 rounded-full px-4 py-3 pl-10 text-text-primary placeholder-text-secondary focus:border-accent focus:outline-none">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary"></i>
+                    </div>
+                </div>
+            </section>
+            <!-- @END_COMPONENT: HeroSection -->
+
+            <!-- @COMPONENT: FilterTabs -->
+            <section class="px-4 mb-8">
+                <div class="flex space-x-2 overflow-x-auto pb-2">
+                    <button class="bg-accent text-white px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap">
+                        All
+                    </button>
+                    <button class="bg-secondary text-text-secondary px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap hover:bg-gray-700 transition-colors">
+                        Comedy
+                    </button>
+                    <button class="bg-secondary text-text-secondary px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap hover:bg-gray-700 transition-colors">
+                        Music
+                    </button>
+                    <button class="bg-secondary text-text-secondary px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap hover:bg-gray-700 transition-colors">
+                        Gaming
+                    </button>
+                    <button class="bg-secondary text-text-secondary px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap hover:bg-gray-700 transition-colors">
+                        Education
+                    </button>
+                    <button class="bg-secondary text-text-secondary px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap hover:bg-gray-700 transition-colors">
+                        Sports
+                    </button>
+                </div>
+            </section>
+            <!-- @END_COMPONENT: FilterTabs -->
+
+            <!-- @COMPONENT: VideoFeed -->
+            <section class="px-4">
+                <div class="max-w-6xl mx-auto">
+                    <!-- @MAP: videos.map(video => ( -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        
+                        <!-- Video Card 1 -->
+                        <div class="video-card bg-secondary rounded-2xl overflow-hidden cursor-pointer" 
+                             onclick="openVideoPlayer('video1')" data-mock="true">
+                            <div class="relative">
+                                <!-- A dynamic dance performance on a colorful stage with spotlights -->
+                                <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=600" 
+                                     alt="Dance performance video thumbnail" 
+                                     class="w-full h-64 object-cover">
+                                <div class="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
+                                    2:34
+                                </div>
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                            </div>
+                            <div class="p-4">
+                                <h3 class="font-semibold text-text-primary mb-2 line-clamp-2" data-bind="video.title">
+                                    Amazing Dance Moves Tutorial
+                                </h3>
+                                <p class="text-text-secondary text-sm mb-2" data-bind="video.creator">
+                                    @dancequeen_sarah
+                                </p>
+                                <div class="flex items-center justify-between text-xs text-text-secondary">
+                                    <span data-bind="video.views">124.5K views</span>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-star text-yellow-400 mr-1"></i>
+                                        <span data-bind="video.rating">4.8</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Video Card 2 -->
+                        <div class="video-card bg-secondary rounded-2xl overflow-hidden cursor-pointer" 
+                             onclick="openVideoPlayer('video2')" data-mock="true">
+                            <div class="relative">
+                                <!-- A chef preparing gourmet food in a modern kitchen -->
+                                <img src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=600" 
+                                     alt="Cooking tutorial video thumbnail" 
+                                     class="w-full h-64 object-cover">
+                                <div class="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
+                                    5:12
+                                </div>
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                            </div>
+                            <div class="p-4">
+                                <h3 class="font-semibold text-text-primary mb-2 line-clamp-2" data-bind="video.title">
+                                    5-Minute Gourmet Recipe
+                                </h3>
+                                <p class="text-text-secondary text-sm mb-2" data-bind="video.creator">
+                                    @chefmike_pro
+                                </p>
+                                <div class="flex items-center justify-between text-xs text-text-secondary">
+                                    <span data-bind="video.views">89.2K views</span>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-star text-yellow-400 mr-1"></i>
+                                        <span data-bind="video.rating">4.6</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Video Card 3 -->
+                        <div class="video-card bg-secondary rounded-2xl overflow-hidden cursor-pointer" 
+                             onclick="openVideoPlayer('video3')" data-mock="true">
+                            <div class="relative">
+                                <!-- A musician playing guitar with atmospheric lighting -->
+                                <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=600" 
+                                     alt="Music performance video thumbnail" 
+                                     class="w-full h-64 object-cover">
+                                <div class="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
+                                    3:45
+                                </div>
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                            </div>
+                            <div class="p-4">
+                                <h3 class="font-semibold text-text-primary mb-2 line-clamp-2" data-bind="video.title">
+                                    Acoustic Cover - Popular Song
+                                </h3>
+                                <p class="text-text-secondary text-sm mb-2" data-bind="video.creator">
+                                    @musiclover_alex
+                                </p>
+                                <div class="flex items-center justify-between text-xs text-text-secondary">
+                                    <span data-bind="video.views">256.7K views</span>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-star text-yellow-400 mr-1"></i>
+                                        <span data-bind="video.rating">4.9</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Video Card 4 -->
+                        <div class="video-card bg-secondary rounded-2xl overflow-hidden cursor-pointer" 
+                             onclick="openVideoPlayer('video4')" data-mock="true">
+                            <div class="relative">
+                                <!-- A person doing yoga on a peaceful beach at sunrise -->
+                                <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=600" 
+                                     alt="Yoga tutorial video thumbnail" 
+                                     class="w-full h-64 object-cover">
+                                <div class="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
+                                    8:20
+                                </div>
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                            </div>
+                            <div class="p-4">
+                                <h3 class="font-semibold text-text-primary mb-2 line-clamp-2" data-bind="video.title">
+                                    Morning Yoga Routine
+                                </h3>
+                                <p class="text-text-secondary text-sm mb-2" data-bind="video.creator">
+                                    @yogawithemma
+                                </p>
+                                <div class="flex items-center justify-between text-xs text-text-secondary">
+                                    <span data-bind="video.views">178.3K views</span>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-star text-yellow-400 mr-1"></i>
+                                        <span data-bind="video.rating">4.7</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Video Card 5 -->
+                        <div class="video-card bg-secondary rounded-2xl overflow-hidden cursor-pointer" 
+                             onclick="openVideoPlayer('video5')" data-mock="true">
+                            <div class="relative">
+                                <!-- A gaming setup with multiple monitors showing an exciting game -->
+                                <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=600" 
+                                     alt="Gaming video thumbnail" 
+                                     class="w-full h-64 object-cover">
+                                <div class="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
+                                    12:15
+                                </div>
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                            </div>
+                            <div class="p-4">
+                                <h3 class="font-semibold text-text-primary mb-2 line-clamp-2" data-bind="video.title">
+                                    Epic Gaming Highlights
+                                </h3>
+                                <p class="text-text-secondary text-sm mb-2" data-bind="video.creator">
+                                    @progamer_ninja
+                                </p>
+                                <div class="flex items-center justify-between text-xs text-text-secondary">
+                                    <span data-bind="video.views">445.9K views</span>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-star text-yellow-400 mr-1"></i>
+                                        <span data-bind="video.rating">4.5</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Video Card 6 -->
+                        <div class="video-card bg-secondary rounded-2xl overflow-hidden cursor-pointer" 
+                             onclick="openVideoPlayer('video6')" data-mock="true">
+                            <div class="relative">
+                                <!-- A beautiful landscape photography session in golden hour -->
+                                <img src="https://images.unsplash.com/photo-1472214103451-9374bd1c798e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=600" 
+                                     alt="Photography tutorial video thumbnail" 
+                                     class="w-full h-64 object-cover">
+                                <div class="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
+                                    6:38
+                                </div>
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                            </div>
+                            <div class="p-4">
+                                <h3 class="font-semibold text-text-primary mb-2 line-clamp-2" data-bind="video.title">
+                                    Golden Hour Photography Tips
+                                </h3>
+                                <p class="text-text-secondary text-sm mb-2" data-bind="video.creator">
+                                    @photoartist_lisa
+                                </p>
+                                <div class="flex items-center justify-between text-xs text-text-secondary">
+                                    <span data-bind="video.views">92.4K views</span>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-star text-yellow-400 mr-1"></i>
+                                        <span data-bind="video.rating">4.8</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <!-- @END_MAP )) -->
+
+                    <!-- Load More Button -->
+                    <div class="text-center mt-12">
+                        <button class="bg-secondary text-text-primary px-8 py-3 rounded-full font-medium hover:bg-gray-700 transition-colors"
+                                data-event="click:loadMoreVideos">
+                            Load More Videos
+                        </button>
+                    </div>
+                </div>
+            </section>
+            <!-- @END_COMPONENT: VideoFeed -->
+
+        </main>
+        <!-- @END_COMPONENT: MainContent -->
+
+        <!-- @COMPONENT: VideoPlayerModal -->
+        <div id="video-player-modal" class="fixed inset-0 bg-black z-50 hidden">
+            <div class="flex flex-col md:flex-row h-full">
+                
+                <!-- Video Player Section -->
+                <div class="flex-1 flex items-center justify-center bg-black">
+                    <div class="relative w-full h-full max-w-4xl">
+                        <!-- Mock Video Player -->
+                        <div class="w-full h-full bg-gray-900 rounded-lg flex items-center justify-center">
+                            <!-- A concert stage with dramatic lighting and smoke effects -->
+                            <img id="current-video-thumbnail" 
+                                 src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600" 
+                                 alt="Video player preview" 
+                                 class="w-full h-full object-contain">
+                        </div>
+                        
+                        <!-- Video Controls -->
+                        <div class="absolute bottom-4 left-4 right-4 bg-black bg-opacity-50 rounded-lg p-4">
+                            <div class="flex items-center space-x-4">
+                                <button class="text-white hover:text-accent transition-colors">
+                                    <i class="fas fa-play text-2xl"></i>
+                                </button>
+                                <div class="flex-1 bg-gray-600 rounded-full h-2">
+                                    <div class="bg-accent h-2 rounded-full w-1/3"></div>
+                                </div>
+                                <span class="text-white text-sm">1:23 / 3:45</span>
+                                <button class="text-white hover:text-accent transition-colors">
+                                    <i class="fas fa-volume-up"></i>
+                                </button>
+                                <button class="text-white hover:text-accent transition-colors">
+                                    <i class="fas fa-expand"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Video Info & Comments Section -->
+                <div class="w-full md:w-96 bg-secondary overflow-y-auto">
+                    <div class="p-6">
+                        
+                        <!-- Close Button -->
+                        <button class="float-right text-text-secondary hover:text-text-primary" 
+                                onclick="closeVideoPlayer()">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+
+                        <!-- Video Info -->
+                        <div class="mb-6">
+                            <h2 id="video-title" class="text-xl font-bold text-text-primary mb-2" data-mock="true">
+                                Acoustic Cover - Popular Song
+                            </h2>
+                            <div class="flex items-center space-x-4 mb-4">
+                                <div class="flex items-center space-x-2">
+                                    <!-- A close-up profile photo of a smiling musician -->
+                                    <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-4.0.3&auto=format&fit=crop&w=40&h=40" 
+                                         alt="Creator profile" 
+                                         class="w-8 h-8 rounded-full object-cover">
+                                    <span class="text-text-primary font-medium" data-mock="true">@musiclover_alex</span>
+                                </div>
+                                <button class="bg-accent text-white px-4 py-1 rounded-full text-sm font-medium hover:bg-pink-600 transition-colors">
+                                    Follow
+                                </button>
+                            </div>
+                            
+                            <!-- Video Stats -->
+                            <div class="flex items-center space-x-6 text-sm text-text-secondary mb-4">
+                                <span data-mock="true">256.7K views</span>
+                                <span data-mock="true">2 days ago</span>
+                                <span data-mock="true">Music</span>
+                            </div>
+
+                            <!-- Rating System -->
+                            <div class="mb-4">
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <span class="text-text-primary">Rate this video:</span>
+                                    <div class="star-rating flex space-x-1">
+                                        <i class="fas fa-star star filled" data-rating="1"></i>
+                                        <i class="fas fa-star star filled" data-rating="2"></i>
+                                        <i class="fas fa-star star filled" data-rating="3"></i>
+                                        <i class="fas fa-star star filled" data-rating="4"></i>
+                                        <i class="fas fa-star star" data-rating="5"></i>
+                                    </div>
+                                    <span class="text-text-secondary text-sm">(4.9/5)</span>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="flex space-x-4 mb-6">
+                                <button class="flex items-center space-x-2 bg-primary text-text-primary px-4 py-2 rounded-full hover:bg-gray-700 transition-colors">
+                                    <i class="fas fa-thumbs-up"></i>
+                                    <span>1.2K</span>
+                                </button>
+                                <button class="flex items-center space-x-2 bg-primary text-text-primary px-4 py-2 rounded-full hover:bg-gray-700 transition-colors">
+                                    <i class="fas fa-share"></i>
+                                    <span>Share</span>
+                                </button>
+                                <button class="flex items-center space-x-2 bg-primary text-text-primary px-4 py-2 rounded-full hover:bg-gray-700 transition-colors">
+                                    <i class="fas fa-bookmark"></i>
+                                    <span>Save</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Comments Section -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-text-primary mb-4">Comments (47)</h3>
+                            
+                            <!-- Add Comment -->
+                            <div class="mb-6">
+                                <div class="flex space-x-3">
+                                    <!-- A professional headshot of a young person smiling -->
+                                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=40&h=40" 
+                                         alt="Your profile" 
+                                         class="w-8 h-8 rounded-full object-cover">
+                                    <div class="flex-1">
+                                        <textarea placeholder="Add a comment..." data-mock="true"
+                                                  class="w-full bg-primary border border-gray-600 rounded-lg px-3 py-2 text-text-primary placeholder-text-secondary focus:border-accent focus:outline-none resize-none h-20"></textarea>
+                                        <div class="flex justify-end mt-2">
+                                            <button class="bg-accent text-white px-4 py-1 rounded-full text-sm font-medium hover:bg-pink-600 transition-colors"
+                                                    data-event="click:postComment">
+                                                Post
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Comments List -->
+                            <div class="space-y-4">
+                                <!-- @MAP: comments.map(comment => ( -->
+                                
+                                <!-- Comment 1 -->
+                                <div class="flex space-x-3" data-mock="true">
+                                    <!-- A professional headshot of a woman with a warm smile -->
+                                    <img src="https://pixabay.com/get/gfa714c9f2501f213209da2f0f256cb9d6eebc999dc6e3fd6fc0962758060add5f16a979aa5521668865f6e5c3368bfb382f4cf834de578bc469543de99474352_1280.jpg" 
+                                         alt="Commenter profile" 
+                                         class="w-8 h-8 rounded-full object-cover">
+                                    <div class="flex-1">
+                                        <div class="bg-primary rounded-lg p-3">
+                                            <div class="flex items-center space-x-2 mb-1">
+                                                <span class="text-text-primary font-medium text-sm" data-bind="comment.username">@sarah_music</span>
+                                                <span class="text-text-secondary text-xs" data-bind="comment.time">2h ago</span>
+                                            </div>
+                                            <p class="text-text-primary text-sm" data-bind="comment.text">
+                                                This is absolutely beautiful! Your voice is amazing 🎵
+                                            </p>
+                                        </div>
+                                        <div class="flex items-center space-x-4 mt-2 text-xs text-text-secondary">
+                                            <button class="hover:text-accent transition-colors">
+                                                <i class="fas fa-thumbs-up mr-1"></i>24
+                                            </button>
+                                            <button class="hover:text-accent transition-colors">Reply</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Comment 2 -->
+                                <div class="flex space-x-3" data-mock="true">
+                                    <!-- A professional headshot of a man with glasses -->
+                                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=40&h=40" 
+                                         alt="Commenter profile" 
+                                         class="w-8 h-8 rounded-full object-cover">
+                                    <div class="flex-1">
+                                        <div class="bg-primary rounded-lg p-3">
+                                            <div class="flex items-center space-x-2 mb-1">
+                                                <span class="text-text-primary font-medium text-sm" data-bind="comment.username">@guitarexpert</span>
+                                                <span class="text-text-secondary text-xs" data-bind="comment.time">5h ago</span>
+                                            </div>
+                                            <p class="text-text-primary text-sm" data-bind="comment.text">
+                                                Great guitar technique! What strings are you using?
+                                            </p>
+                                        </div>
+                                        <div class="flex items-center space-x-4 mt-2 text-xs text-text-secondary">
+                                            <button class="hover:text-accent transition-colors">
+                                                <i class="fas fa-thumbs-up mr-1"></i>12
+                                            </button>
+                                            <button class="hover:text-accent transition-colors">Reply</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Comment 3 -->
+                                <div class="flex space-x-3" data-mock="true">
+                                    <!-- A professional headshot of a young woman with curly hair -->
+                                    <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=40&h=40" 
+                                         alt="Commenter profile" 
+                                         class="w-8 h-8 rounded-full object-cover">
+                                    <div class="flex-1">
+                                        <div class="bg-primary rounded-lg p-3">
+                                            <div class="flex items-center space-x-2 mb-1">
+                                                <span class="text-text-primary font-medium text-sm" data-bind="comment.username">@musiclover22</span>
+                                                <span class="text-text-secondary text-xs" data-bind="comment.time">1d ago</span>
+                                            </div>
+                                            <p class="text-text-primary text-sm" data-bind="comment.text">
+                                                Can you please do a tutorial for this song? 🎸
+                                            </p>
+                                        </div>
+                                        <div class="flex items-center space-x-4 mt-2 text-xs text-text-secondary">
+                                            <button class="hover:text-accent transition-colors">
+                                                <i class="fas fa-thumbs-up mr-1"></i>8
+                                            </button>
+                                            <button class="hover:text-accent transition-colors">Reply</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- @END_MAP )) -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: VideoPlayerModal -->
+
+        <!-- @COMPONENT: UploadModal -->
+        <div id="upload-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-secondary rounded-2xl p-8 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-text-primary">Upload Video</h2>
+                    <button class="text-text-secondary hover:text-text-primary" onclick="closeUploadModal()">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <!-- Upload Form -->
+                <form class="space-y-6" data-implementation="Mock upload form - should handle file validation and metadata">
+                    
+                    <!-- File Upload Area -->
+                    <div class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center">
+                        <div class="space-y-4">
+                            <i class="fas fa-cloud-upload-alt text-4xl text-accent"></i>
+                            <div>
+                                <p class="text-text-primary font-medium">Choose a video file</p>
+                                <p class="text-text-secondary text-sm">MP4, MOV, AVI up to 100MB</p>
+                            </div>
+                            <input type="file" accept="video/*" class="hidden" id="video-upload" data-mock="true">
+                            <button type="button" onclick="document.getElementById('video-upload').click()" 
+                                    class="bg-accent text-white px-6 py-2 rounded-lg font-medium hover:bg-pink-600 transition-colors">
+                                Browse Files
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Video Metadata -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-text-primary font-medium mb-2">Title</label>
+                            <input type="text" placeholder="Video title" data-mock="true"
+                                   class="w-full bg-primary border border-gray-600 rounded-lg px-4 py-3 text-text-primary placeholder-text-secondary focus:border-accent focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-text-primary font-medium mb-2">Genre</label>
+                            <select class="w-full bg-primary border border-gray-600 rounded-lg px-4 py-3 text-text-primary focus:border-accent focus:outline-none">
+                                <option value="">Select genre</option>
+                                <option value="comedy">Comedy</option>
+                                <option value="music">Music</option>
+                                <option value="gaming">Gaming</option>
+                                <option value="education">Education</option>
+                                <option value="sports">Sports</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-text-primary font-medium mb-2">Publisher</label>
+                            <input type="text" placeholder="Publisher name" data-mock="true"
+                                   class="w-full bg-primary border border-gray-600 rounded-lg px-4 py-3 text-text-primary placeholder-text-secondary focus:border-accent focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-text-primary font-medium mb-2">Age Rating</label>
+                            <select class="w-full bg-primary border border-gray-600 rounded-lg px-4 py-3 text-text-primary focus:border-accent focus:outline-none">
+                                <option value="">Select rating</option>
+                                <option value="G">G - General Audiences</option>
+                                <option value="PG">PG - Parental Guidance</option>
+                                <option value="PG-13">PG-13 - Parents Strongly Cautioned</option>
+                                <option value="R">R - Restricted</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-text-primary font-medium mb-2">Producer</label>
+                        <input type="text" placeholder="Producer name" data-mock="true"
+                               class="w-full bg-primary border border-gray-600 rounded-lg px-4 py-3 text-text-primary placeholder-text-secondary focus:border-accent focus:outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-text-primary font-medium mb-2">Description (Optional)</label>
+                        <textarea placeholder="Tell viewers about your video..." data-mock="true"
+                                  class="w-full bg-primary border border-gray-600 rounded-lg px-4 py-3 text-text-primary placeholder-text-secondary focus:border-accent focus:outline-none h-24 resize-none"></textarea>
+                    </div>
+
+                    <!-- Upload Button -->
+                    <div class="flex justify-end space-x-4">
+                        <button type="button" onclick="closeUploadModal()" 
+                                class="bg-primary text-text-primary px-6 py-3 rounded-lg font-medium hover:bg-gray-700 transition-colors">
+                            Cancel
+                        </button>
+                        <button type="submit" 
+                                class="bg-accent text-white px-6 py-3 rounded-lg font-medium hover:bg-pink-600 transition-colors"
+                                data-event="submit:handleVideoUpload">
+                            Upload Video
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: UploadModal -->
+
+        <!-- @COMPONENT: BottomNavigation (Mobile) -->
+        <nav class="fixed bottom-0 left-0 right-0 bg-secondary border-t border-gray-700 md:hidden z-30">
+            <div class="flex items-center justify-around py-2">
+                <button class="flex flex-col items-center space-y-1 p-2 text-accent">
+                    <i class="fas fa-home text-xl"></i>
+                    <span class="text-xs">Home</span>
+                </button>
+                <button class="flex flex-col items-center space-y-1 p-2 text-text-secondary hover:text-accent transition-colors">
+                    <i class="fas fa-search text-xl"></i>
+                    <span class="text-xs">Search</span>
+                </button>
+                <button class="flex flex-col items-center space-y-1 p-2 text-text-secondary hover:text-accent transition-colors"
+                        onclick="showUploadModal()">
+                    <i class="fas fa-plus-circle text-2xl"></i>
+                    <span class="text-xs">Upload</span>
+                </button>
+                <button class="flex flex-col items-center space-y-1 p-2 text-text-secondary hover:text-accent transition-colors">
+                    <i class="fas fa-user text-xl"></i>
+                    <span class="text-xs">Profile</span>
+                </button>
+            </div>
+        </nav>
+        <!-- @END_COMPONENT: BottomNavigation -->
+
+    </div>
+    <!-- @END_COMPONENT: AppContainer -->
+
+    <script>
+        (function() {
+            // Modal Management
+            window.openAuthModal = function() {
+                document.getElementById('auth-modal').classList.remove('hidden');
+            };
+
+            window.closeAuthModal = function() {
+                document.getElementById('auth-modal').classList.add('hidden');
+            };
+
+            window.showLogin = function() {
+                document.getElementById('signup-form').classList.add('hidden');
+                document.getElementById('login-form').classList.remove('hidden');
+            };
+
+            window.showSignup = function() {
+                document.getElementById('login-form').classList.add('hidden');
+                document.getElementById('signup-form').classList.remove('hidden');
+            };
+
+            window.showUploadModal = function() {
+                document.getElementById('upload-modal').classList.remove('hidden');
+            };
+
+            window.closeUploadModal = function() {
+                document.getElementById('upload-modal').classList.add('hidden');
+            };
+
+            window.toggleMobileMenu = function() {
+                const menu = document.getElementById('mobile-menu');
+                menu.classList.toggle('hidden');
+            };
+
+            // Video Player Management
+            window.openVideoPlayer = function(videoId) {
+                const modal = document.getElementById('video-player-modal');
+                modal.classList.remove('hidden');
+                
+                // TODO: Load specific video data based on videoId
+                // This would typically fetch video details and update the player
+            };
+
+            window.closeVideoPlayer = function() {
+                document.getElementById('video-player-modal').classList.add('hidden');
+            };
+
+            // Star Rating System
+            document.addEventListener('DOMContentLoaded', function() {
+                const stars = document.querySelectorAll('.star-rating .star');
+                
+                stars.forEach(star => {
+                    star.addEventListener('click', function() {
+                        const rating = parseInt(this.dataset.rating);
+                        
+                        // Update visual state
+                        stars.forEach((s, index) => {
+                            if (index < rating) {
+                                s.classList.add('filled');
+                            } else {
+                                s.classList.remove('filled');
+                            }
+                        });
+                        
+                        // TODO: Send rating to server
+                        console.log('Rating submitted:', rating);
+                    });
+                    
+                    star.addEventListener('mouseenter', function() {
+                        const rating = parseInt(this.dataset.rating);
+                        
+                        stars.forEach((s, index) => {
+                            if (index < rating) {
+                                s.style.color = '#FFD700';
+                            } else {
+                                s.style.color = '#8E8E93';
+                            }
+                        });
+                    });
+                });
+                
+                // Reset hover effect
+                document.querySelector('.star-rating').addEventListener('mouseleave', function() {
+                    stars.forEach(star => {
+                        if (star.classList.contains('filled')) {
+                            star.style.color = '#FFD700';
+                        } else {
+                            star.style.color = '#8E8E93';
+                        }
+                    });
+                });
+            });
+
+            // Close modals when clicking outside
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('fixed') && e.target.classList.contains('inset-0')) {
+                    if (e.target.id === 'auth-modal') closeAuthModal();
+                    if (e.target.id === 'upload-modal') closeUploadModal();
+                    if (e.target.id === 'mobile-menu') toggleMobileMenu();
+                }
+            });
+
+            // TODO: Implement search functionality
+            // TODO: Implement video upload with file validation
+            // TODO: Implement comment posting and real-time updates
+            // TODO: Implement user authentication and session management
+            // TODO: Implement video streaming and player controls
+            // TODO: Implement infinite scroll for video feed
+            // TODO: Implement user profile management
+            // TODO: Implement video filtering and sorting
+        })();
+    </script>
+
+</body>
+</html>

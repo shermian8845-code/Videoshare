@@ -1,0 +1,90 @@
+Prompt: Build Video Sharing Web App
+You are an expert full-stack developer. Create a scalable video sharing web application, similar to TikTok, with the following requirements:
+
+Stack
+Frontend: React.js with Tailwind CSS for styling, responsive design.
+
+Backend: Node.js (Express) with RESTful API endpoints.
+
+Database: MongoDB (Mongoose ORM).
+
+Authentication: JWT-based authentication with role-based access (Creator & Consumer).
+
+File Storage: Store videos locally in an uploads/videos folder (can be swapped later for cloud storage).
+
+Features
+User Roles
+Creator User
+
+Can only be registered by an admin.
+
+Can upload videos (MP4) with metadata:
+
+Title
+
+Publisher
+
+Producer
+
+Genre
+
+Age Rating
+
+Can view list of uploaded videos and stats (views, ratings, comments).
+
+Consumer User
+
+Can sign up publicly.
+
+Can search videos by title, genre, or publisher.
+
+Can watch videos in a dashboard feed.
+
+Can comment on videos.
+
+Can rate videos (1–5 stars).
+
+Core Functionalities
+REST API for:
+
+User registration/login (with role check).
+
+Uploading, listing, and streaming videos.
+
+Adding and retrieving comments.
+
+Rating videos and calculating average ratings.
+
+Secure authentication and authorization middleware.
+
+Home feed showing latest videos (sorted by upload date).
+
+Search bar with filtering options.
+
+Video player page with comment & rating section.
+
+Basic caching for video metadata using in-memory caching (e.g., Node cache).
+
+Advanced Features
+Generate video thumbnails automatically upon upload (using FFmpeg).
+
+Real-time comment updates via WebSockets (Socket.io).
+
+User profile page showing uploaded or watched videos.
+
+Scalability Requirements
+Modular folder structure (controllers, models, routes, services).
+
+Database indexes for faster search queries.
+
+Middleware for error handling and request validation.
+
+Easily replaceable storage (local → cloud in future).
+
+Deliverables
+Complete working app code.
+
+README with installation & run instructions.
+
+.env sample with environment variables.
+
