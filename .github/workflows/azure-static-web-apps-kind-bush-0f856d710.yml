@@ -16,23 +16,30 @@ jobs:
     name: Build and Deploy Job
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: true
-          lfs: false
 
+      # Install Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18' # or '20' if your React version supports it
+          node-version: '18'
 
-      - name: Install dependencies
+      # Install frontend dependencies
+      - name: Install frontend dependencies
         run: npm install
-        working-directory: ./StreamSphere
+        working-directory: ./StreamSphere/client
 
-      - name: Build React app
+      # Build frontend (React + Vite)
+      - name: Build frontend
         run: npm run build
-        working-directory: ./StreamSphere
+        working-directory: ./StreamSphere/client
 
+      # (Optional) Install backend dependencies
+      # This step is useful if you later convert server to Azure Functions
+      - name: Install backend dependencies
+        run: npm install
+        working-directory: ./StreamSphere/server
+
+      # Deploy to Azure Static Web Apps
       - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
@@ -40,10 +47,12 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_KIND_BUSH_0F856D710 }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "./StreamSphere"
-          api_location: ""
-          output_location: "build"
+          ###### IMPORTANT PATHS ######
+          app_location: "./StreamSphere/client"   # React app
+          api_location: "./StreamSphere/server"   # Express backend (must be Azure Functions)
+          output_location: "dist"                 # Vite build output
 
+  # Job to handle pull request close
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
     runs-on: ubuntu-latest
